@@ -1,0 +1,30 @@
+# EditorConfig helps developers define and maintain consistent
+# coding styles between different editors and IDEs
+# editorconfig.org
+
+root = true
+
+[*]
+
+# default cargo fmt has indent_size = 4
+indent_style = space
+indent_size = 2
+
+# We recommend you to keep these unchanged
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.md]
+trim_trailing_whitespace = false
+
+[{Makefile{,.*}, *.mk}]
+indent_style = tab
+indent_size = 2
+
+# Never use tab in YAML files
+# keep indent_size = 2, otherwise it is hard to read in k8s helm charts
+[{*.yaml,*.yml}]
+indent_style = space
+indent_size = 2
