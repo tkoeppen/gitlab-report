@@ -3,6 +3,7 @@
 - This tool exports all groups and projects from a self-hosted gitlab.
 - It support up to 3 subgroups and sort groups, subgroups and projects alphabetically.
 - It creates a `gitlab_groups_projects.csv` file. This file is overwritten with each run.
+- The CSV file contains the list of projects with their members and repository size.
 
 ## precondition
 
@@ -28,7 +29,7 @@ export GITLAB_API_KEY=
 # the URL of the GitLab instance
 export GITLAB_URL=
 # (optional) the URL of the HTTP proxy
-export HTTP_PROXY=
+export GITLAB_HTTP_PROXY=
 ```
 
 ## run

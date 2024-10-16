@@ -6,12 +6,12 @@ import requests
 # Set up GitLab connection using an access token (replace 'your_gitlab_url' with actual GitLab URL)
 GITLAB_URL = os.getenv("GITLAB_URL", "https://gitlab.com")
 GITLAB_API_KEY = os.getenv("GITLAB_API_KEY", "your_api_key_here")
-HTTP_PROXY = os.getenv("HTTP_PROXY", None)
+GITLAB_HTTP_PROXY = os.getenv("GITLAB_HTTP_PROXY", None)
 
 # Create a requests session and set the proxy
 session = requests.Session()
 session.proxies = {
-    'https': HTTP_PROXY,
+    'https': GITLAB_HTTP_PROXY,
 }
 
 # Create a GitLab connection
@@ -58,16 +58,38 @@ def get_subgroups_and_projects(group_id, root_group_name, subgroup1, subgroup2, 
                 get_subgroups_and_projects(subgroup.id, root_group_name, subgroup1, subgroup2, subgroup.name)
 
         # Get all projects within the current group or subgroup
-        projects = group.projects.list(all=True)
+        projects = group.projects.list(all=True, statistics=True)
         for project in projects:
             # Append the root group, subgroup1, subgroup2, subgroup3, and project data to the list
-            group_data.append({
-                'Group': root_group_name,
-                'Subgroup1': subgroup1 if subgroup1 else "None",
-                'Subgroup2': subgroup2 if subgroup2 else "None",
-                'Subgroup3': subgroup3 if subgroup3 else "None",
-                'Project': project.name
-            })
+            try:
+                # Fetch the full project details to access members
+                full_project = gl.projects.get(project.id, statistics=True)
+                echo = f"... Fetching members for project: {project.name}, id: {project.id}"
+                echo = f"... project: {project}"
+                admins = [member.username for member in full_project.members.list(all=True) if member.access_level == gitlab.const.AccessLevel.OWNER]
+                maintainers = [member.username for member in full_project.members.list(all=True) if member.access_level >= gitlab.const.AccessLevel.MAINTAINER]
+                developers = [member.username for member in full_project.members.list(all=True) if member.access_level == gitlab.const.AccessLevel.DEVELOPER]
+                members = [member.username for member in full_project.members.list(all=True)]
+
+                # Fetch the project size
+                project_size_bytes = full_project.statistics['storage_size']
+                project_size_mb = round(project_size_bytes / (1024 ** 2), 1)
+
+                group_data.append({
+                    'Group': root_group_name,
+                    'Subgroup1': subgroup1 if subgroup1 else "None",
+                    'Subgroup2': subgroup2 if subgroup2 else "None",
+                    'Subgroup3': subgroup3 if subgroup3 else "None",
+                    'Project': project.name,
+                    'Admins': ', '.join(admins),
+                    'Maintainers': ', '.join(maintainers),
+                    'Developers': ', '.join(developers),
+                    'Members': ', '.join(members),
+                    'Project Size (MB)': project_size_mb
+                })
+            except Exception as e:
+                print(f"An error occurred while fetching project members: {e}")
+
 
     except Exception as e:
         print(f"An error occurred while fetching subgroups/projects: {e}")
@@ -76,7 +98,7 @@ def get_subgroups_and_projects(group_id, root_group_name, subgroup1, subgroup2, 
 def export_to_csv(file_name="gitlab_groups_projects.csv"):
     try:
         # Define the CSV file headers
-        headers = ['Group', 'Subgroup1', 'Subgroup2', 'Subgroup3', 'Project']
+        headers = ['Group', 'Subgroup1', 'Subgroup2', 'Subgroup3', 'Project', 'Admins', 'Maintainers', 'Developers', 'Members', 'Project Size (MB)']
 
         # Sort group_data by 'Group', 'Subgroup1', 'Subgroup2', 'Subgroup3', and 'Project'
         sorted_data = sorted(group_data, key=lambda x: (x['Group'], x['Subgroup1'], x['Subgroup2'], x['Subgroup3'], x['Project']))
