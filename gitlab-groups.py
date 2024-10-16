@@ -28,7 +28,7 @@ def get_root_groups_and_projects():
 
         for group in groups:
             if group.parent_id is None:
-                print(f"... Fetching groups and projects for root group: {group.name}")
+                print(f"... Fetching groups, projects and members for root group: {group.name}")
                 # This is a root group, so start the recursive process
                 get_subgroups_and_projects(group.id, group.name, None, None, None)
 
@@ -64,7 +64,6 @@ def get_subgroups_and_projects(group_id, root_group_name, subgroup1, subgroup2, 
             try:
                 # Fetch the full project details to access members
                 full_project = gl.projects.get(project.id, statistics=True)
-                print(f"... Fetching members for project: {project.name}, id: {project.id}")
                 admins = [member.username for member in full_project.members_all.list(all=True) if member.access_level == gitlab.const.AccessLevel.OWNER]
                 maintainers = [member.username for member in full_project.members_all.list(all=True) if member.access_level >= gitlab.const.AccessLevel.MAINTAINER]
                 developers = [member.username for member in full_project.members_all.list(all=True) if member.access_level == gitlab.const.AccessLevel.DEVELOPER]
@@ -76,7 +75,9 @@ def get_subgroups_and_projects(group_id, root_group_name, subgroup1, subgroup2, 
 
                 # Fetch the project size
                 project_size_bytes = full_project.statistics['storage_size']
-                project_size_mb = round(project_size_bytes / (1024 ** 2), 1)
+                # convert bytes to MB, round to 1 decimal, and replace '.' with ',' to match European number format (for Excel)
+                project_size_mb = f"{round(project_size_bytes / (1024 ** 2), 1):.1f}".replace('.', ',')
+
 
                 group_data.append({
                     'Group': root_group_name,
