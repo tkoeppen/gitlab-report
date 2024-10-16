@@ -83,7 +83,7 @@ def export_to_csv(file_name="gitlab_groups_projects.csv"):
 
         # Write the collected data to a CSV file
         with open(file_name, mode='w', newline='', encoding='utf-8') as file:
-            writer = csv.DictWriter(file, fieldnames=headers)
+            writer = csv.DictWriter(file, fieldnames=headers, delimiter=';')
             writer.writeheader()
             writer.writerows(sorted_data)
 
