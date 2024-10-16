@@ -1,13 +1,21 @@
+import csv
 import gitlab
 import os
-import csv
+import requests
 
 # Set up GitLab connection using an access token (replace 'your_gitlab_url' with actual GitLab URL)
 GITLAB_URL = os.getenv("GITLAB_URL", "https://gitlab.com")
 GITLAB_API_KEY = os.getenv("GITLAB_API_KEY", "your_api_key_here")
+HTTP_PROXY = os.getenv("HTTP_PROXY", None)
+
+# Create a requests session and set the proxy
+session = requests.Session()
+session.proxies = {
+    'https': HTTP_PROXY,
+}
 
 # Create a GitLab connection
-gl = gitlab.Gitlab(GITLAB_URL, private_token=GITLAB_API_KEY)
+gl = gitlab.Gitlab(GITLAB_URL, private_token=GITLAB_API_KEY, session=session)
 
 # List to hold all the data for CSV export
 group_data = []
