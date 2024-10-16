@@ -64,12 +64,15 @@ def get_subgroups_and_projects(group_id, root_group_name, subgroup1, subgroup2, 
             try:
                 # Fetch the full project details to access members
                 full_project = gl.projects.get(project.id, statistics=True)
-                echo = f"... Fetching members for project: {project.name}, id: {project.id}"
-                echo = f"... project: {project}"
-                admins = [member.username for member in full_project.members.list(all=True) if member.access_level == gitlab.const.AccessLevel.OWNER]
-                maintainers = [member.username for member in full_project.members.list(all=True) if member.access_level >= gitlab.const.AccessLevel.MAINTAINER]
-                developers = [member.username for member in full_project.members.list(all=True) if member.access_level == gitlab.const.AccessLevel.DEVELOPER]
-                members = [member.username for member in full_project.members.list(all=True)]
+                print(f"... Fetching members for project: {project.name}, id: {project.id}")
+                admins = [member.username for member in full_project.members_all.list(all=True) if member.access_level == gitlab.const.AccessLevel.OWNER]
+                maintainers = [member.username for member in full_project.members_all.list(all=True) if member.access_level >= gitlab.const.AccessLevel.MAINTAINER]
+                developers = [member.username for member in full_project.members_all.list(all=True) if member.access_level == gitlab.const.AccessLevel.DEVELOPER]
+                members = [member.username for member in full_project.members_all.list(all=True)]
+
+                # to debug API response
+                #print(f"... project: {project}")
+                #print(f"Members: project.name: {project.name}, project.id: {project.id}, members: {members}")
 
                 # Fetch the project size
                 project_size_bytes = full_project.statistics['storage_size']
