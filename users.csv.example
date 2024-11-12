@@ -1,0 +1,3 @@
+email,role,status
+user1@example.com,developer,active
+user2@example.com,maintainer,inactive

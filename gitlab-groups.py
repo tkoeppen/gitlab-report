@@ -3,6 +3,8 @@ import gitlab
 import os
 import requests
 
+# this script exports all groups, subgroups, projects, and their members to a CSV file
+
 # Set up GitLab connection using an access token (replace 'your_gitlab_url' with actual GitLab URL)
 GITLAB_URL = os.getenv("GITLAB_URL", "https://gitlab.com")
 GITLAB_API_KEY = os.getenv("GITLAB_API_KEY", "your_api_key_here")
