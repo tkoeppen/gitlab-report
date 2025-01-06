@@ -37,7 +37,9 @@ def get_group_id_by_name(group_name):
         group = gl.groups.list(search=group_name)
         #print(group)
         for grp in group:
-            if grp.name == group_name:
+            # Check if the group is a root group (no parent), otherwise it might be a subgroup
+            if grp.name == group_name and grp.parent_id is None:
+                print(f"Group {group_name}, id: {grp.id} found in GitLab")
                 return grp.id
         print(f"Group {group_name} not found in GitLab")
         return None
@@ -60,11 +62,17 @@ def manage_users_in_groups(users, groups):
                         user_id = gitlab_user[0].id
                         group_obj = gl.groups.get(group_id)
                         if user['status'].lower() == 'active':
-                            access_level = gitlab.const.AccessLevel.DEVELOPER if user['role'].lower() == 'developer' else gitlab.const.AccessLevel.MAINTAINER
+                            if user['role'].lower() == 'developer':
+                              access_level = gitlab.const.AccessLevel.DEVELOPER
+                            elif user['role'].lower() == 'maintainer':
+                                access_level = gitlab.const.AccessLevel.MAINTAINER
+                            else:
+                                print(f"Unknown role {user['role']} for user {user['email']}")
+                                continue
                             try:
                                 # Add the user to the group
                                 group_obj.members.create({'user_id': user_id, 'access_level': access_level})
-                                print(f"Added {email} to group {group_name} as {user['role']}")
+                                print(f"Added {email} to group {group_name} ({group_id}) as {user['role']}")
                             except gitlab.exceptions.GitlabCreateError as e:
                                 if e.response_code == 409:
                                     # Member already exists, update access level if necessary
