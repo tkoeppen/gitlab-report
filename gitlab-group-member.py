@@ -34,7 +34,8 @@ groups = read_csv('groups.csv')
 # Function to get group ID by name
 def get_group_id_by_name(group_name):
     try:
-        group = gl.groups.list(search=group_name)
+        # List function returns by default the first 20 groups, so we use get_all=True to fetch all groups
+        group = gl.groups.list(search=group_name,get_all=True)
         #print(group)
         for grp in group:
             # Check if the group is a root group (no parent), otherwise it might be a subgroup
