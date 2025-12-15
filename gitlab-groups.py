@@ -80,6 +80,19 @@ def get_subgroups_and_projects(group_id, root_group_name, subgroup1, subgroup2, 
                 # convert bytes to MB, round to 1 decimal, and replace '.' with ',' to match European number format (for Excel)
                 project_size_mb = f"{round(project_size_bytes / (1024 ** 2), 1):.1f}".replace('.', ',')
 
+                # Fetch programming languages used in the project
+                try:
+                    languages = full_project.languages()
+                    # Sort languages by usage (descending) and format as comma-separated list with percentages
+                    if languages:
+                        total_bytes = sum(languages.values())
+                        languages_list = [f"{lang} ({round(bytes/total_bytes*100, 1)}%)" for lang, bytes in sorted(languages.items(), key=lambda x: x[1], reverse=True)]
+                        languages_str = ', '.join(languages_list)
+                    else:
+                        languages_str = "None"
+                except Exception as e:
+                    print(f"Could not fetch languages for project {project.name}: {e}")
+                    languages_str = "Unknown"
 
                 group_data.append({
                     'Group': root_group_name,
@@ -91,7 +104,8 @@ def get_subgroups_and_projects(group_id, root_group_name, subgroup1, subgroup2, 
                     'Maintainers': ', '.join(maintainers),
                     'Developers': ', '.join(developers),
                     'Members': ', '.join(members),
-                    'Project Size (MB)': project_size_mb
+                    'Project Size (MB)': project_size_mb,
+                    'Languages': languages_str
                 })
             except Exception as e:
                 print(f"An error occurred while fetching project members: {e}")
@@ -104,7 +118,7 @@ def get_subgroups_and_projects(group_id, root_group_name, subgroup1, subgroup2, 
 def export_to_csv(file_name="gitlab_groups_projects.csv"):
     try:
         # Define the CSV file headers
-        headers = ['Group', 'Subgroup1', 'Subgroup2', 'Subgroup3', 'Project', 'Admins', 'Maintainers', 'Developers', 'Members', 'Project Size (MB)']
+        headers = ['Group', 'Subgroup1', 'Subgroup2', 'Subgroup3', 'Project', 'Admins', 'Maintainers', 'Developers', 'Members', 'Project Size (MB)', 'Languages']
 
         # Sort group_data by 'Group', 'Subgroup1', 'Subgroup2', 'Subgroup3', and 'Project'
         sorted_data = sorted(group_data, key=lambda x: (x['Group'], x['Subgroup1'], x['Subgroup2'], x['Subgroup3'], x['Project']))
