@@ -65,4 +65,5 @@ lerna-debug.log*
 *.xlsx
 *.csv
 
-#
+# cloc git cache
+.gitlab-repo-cache/
